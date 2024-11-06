@@ -9,6 +9,7 @@
 def print_matrix(matrix):    
     for row in matrix:
         print(' '.join(row))
+
 def encode(text, k1, k2):
     # Определение размеров матрицы    
     rows = len(k1)
@@ -49,6 +50,7 @@ def decode(ciphertext, k1, k2):
         for j in range(cols):
             plaintext += matrix[i - 1][j]
     return plaintext
+
 # Ключи
 k1 = [3, 1, 4, 2, 5]
 k2 = [2, 1, 3, 5, 4]
