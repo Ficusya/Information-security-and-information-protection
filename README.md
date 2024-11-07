@@ -6,8 +6,9 @@
 Открытый текст: ШИФРОВАНИЕ_ПЕРЕСТАНОВКОЙ.
 Ключи: [3, 1, 4, 2, 5]; [2, 1, 3, 5, 4].
 
-<details open>
+<details close>
   <summary>Код</summary>
+  
     ```python
     def print_matrix(matrix):    
         for row in matrix:
