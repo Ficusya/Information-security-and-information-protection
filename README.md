@@ -9,7 +9,8 @@
 <details close>
   <summary>Код</summary>
   
-    ```python
+```python
+    
     def print_matrix(matrix):    
         for row in matrix:
             print(' '.join(row))
@@ -67,7 +68,8 @@
     # Расшифровка
     decrypted_text = decode(ciphertext, k1, k2)
     print("Расшифрованный текст:", decrypted_text)
-    ```
+    
+```
 </details>
 
 ## Программная реализация алгоритма замены Виженера.
