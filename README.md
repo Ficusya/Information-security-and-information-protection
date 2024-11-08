@@ -200,8 +200,7 @@ def decrypt_rsa(ciphertext, d, n):
     decrypted = [(char ** d) % n for char in ciphertext]
     
     # Преобразуем числа обратно в символы
-    # Если результат выходит за диапазон символов ASCII, ставим знак вопроса
-    decrypted_message = ''.join([chr(char) if char < 128 else '?' for char in decrypted])
+    decrypted_message = ''.join([chr(char) for char in decrypted])
     
     return decrypted_message
 
