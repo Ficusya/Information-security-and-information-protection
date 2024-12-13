@@ -229,3 +229,277 @@ decrypted_message = decrypt_rsa(encrypted_message, d, n)
 print(f"Расшифрованное сообщение: {decrypted_message}")
 ```
 </details>
+
+##Лабораторная работа №6
+
+Реализация на Java программного модуля, создающего матрицу доступа пользователей к объектам доступа и осуществляющего передачу прав доступа. 
+
+<details close>
+  <summary>Код</summary>
+  
+```java
+package org.example;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+// Класс для представления пользователя
+class User {
+    private String name;
+    private boolean isAdmin;
+
+    public User(String name, boolean isAdmin) {
+        this.name = name;
+        this.isAdmin = isAdmin;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        User user = (User) obj;
+        return name.equals(user.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+}
+
+// Класс для представления объекта доступа
+class AccessObject {
+    private String name;
+
+    public AccessObject(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+// Класс для представления прав доступа
+class Permission {
+    private boolean read;
+    private boolean write;
+    private boolean transfer;
+
+    public Permission(boolean read, boolean write, boolean transfer) {
+        this.read = read;
+        this.write = write;
+        this.transfer = transfer;
+    }
+
+    public boolean canRead() {
+        return read;
+    }
+
+    public boolean canWrite() {
+        return write;
+    }
+
+    public boolean canTransfer() {
+        return transfer;
+    }
+
+    @Override
+    public String toString() {
+        return "Чтение: " + read + ", Запись: " + write + ", Передача прав: " + transfer;
+    }
+}
+
+// Класс для представления матрицы доступа
+class AccessMatrix {
+    private Map<User, Map<AccessObject, Permission>> matrix;
+    private List<AccessObject> objects;
+    private Random random;
+
+    public AccessMatrix() {
+        this.matrix = new HashMap<>();
+        this.objects = new ArrayList<>();
+        this.random = new Random();
+    }
+
+    public void addUser(User user) {
+        matrix.put(user, new HashMap<>());
+    }
+
+    public void addObject(AccessObject object) {
+        objects.add(object);
+        for (Map<AccessObject, Permission> userPermissions : matrix.values()) {
+            userPermissions.put(object, new Permission(false, false, false));
+        }
+    }
+
+    public void setPermission(User user, AccessObject object, Permission permission) {
+        matrix.get(user).put(object, permission);
+    }
+
+    public Permission getPermission(User user, AccessObject object) {
+        return matrix.get(user).get(object);
+    }
+
+    public void displayPermissions(User user) {
+        System.out.println("Права доступа для пользователя: " + user.getName());
+        int i = 1;
+        for (AccessObject object : objects) {
+            System.out.println("Объект" + i + ": " + matrix.get(user).get(object));
+            i++;
+        }
+    }
+
+    public void transferPermission(User fromUser, User toUser, AccessObject object) {
+        Permission fromPermission = matrix.get(fromUser).get(object);
+        matrix.get(toUser).put(object, fromPermission);
+    }
+
+    public boolean hasUser(User user) {
+        return matrix.containsKey(user);
+    }
+
+    public AccessObject getObjectByIndex(int index) {
+        return objects.get(index - 1);
+    }
+
+    public void initializeAccessMatrix() {
+        for (User user : matrix.keySet()) {
+            for (AccessObject object : objects) {
+                if (user.isAdmin()) {
+                    setPermission(user, object, new Permission(true, true, true));
+                } else {
+                    setPermission(user, object, new Permission(random.nextBoolean(), random.nextBoolean(), random.nextBoolean()));
+                }
+            }
+        }
+    }
+}
+
+// Интерфейс пользователя
+class UserInterface {
+    private Scanner scanner;
+    private AccessMatrix accessMatrix;
+    private User currentUser;
+    private Map<String, User> users;
+
+    public UserInterface(AccessMatrix accessMatrix, Map<String, User> users) {
+        this.scanner = new Scanner(System.in);
+        this.accessMatrix = accessMatrix;
+        this.users = users;
+    }
+
+    public void start() {
+        while (true) {
+            System.out.print("Введите имя пользователя для входа: ");
+            String username = scanner.nextLine();
+            currentUser = users.get(username);
+            if (currentUser != null && accessMatrix.hasUser(currentUser)) {
+                System.out.println("Идентификация прошла успешно, добро пожаловать в систему, " + currentUser.getName());
+                System.out.println("Перечень прав доступа для пользователя: " + currentUser.getName());
+                accessMatrix.displayPermissions(currentUser);
+
+                while (true) {
+                    System.out.print("Жду ваших указаний > ");
+                    String command = scanner.nextLine();
+
+                    if (command.equalsIgnoreCase("read")) {
+                        System.out.print("Над каким объектом производится операция? ");
+                        int objectIndex = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        AccessObject object = accessMatrix.getObjectByIndex(objectIndex);
+                        if (accessMatrix.getPermission(currentUser, object).canRead()) {
+                            System.out.println("Операция прошла успешно.");
+                        } else {
+                            System.out.println("Отказ в выполнении операции. У вас нет прав для её осуществления.");
+                        }
+                    } else if (command.equalsIgnoreCase("write")) {
+                        System.out.print("Над каким объектом производится операция? ");
+                        int objectIndex = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        AccessObject object = accessMatrix.getObjectByIndex(objectIndex);
+                        if (accessMatrix.getPermission(currentUser, object).canWrite()) {
+                            System.out.println("Операция прошла успешно.");
+                        } else {
+                            System.out.println("Отказ в выполнении операции. У вас нет прав для её осуществления.");
+                        }
+                    } else if (command.equalsIgnoreCase("grant")) {
+                        System.out.print("Кому передать права? ");
+                        String toUsername = scanner.nextLine();
+                        User toUser = users.get(toUsername);
+                        if (toUser == null || !accessMatrix.hasUser(toUser)) {
+                            System.out.println("Пользователь не найден.");
+                            continue;
+                        }
+                        System.out.print("Над каким объектом производится операция? ");
+                        int objectIndex = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+                        AccessObject object = accessMatrix.getObjectByIndex(objectIndex);
+                        if (accessMatrix.getPermission(currentUser, object).canTransfer()) {
+                            accessMatrix.transferPermission(currentUser, toUser, object);
+                            System.out.println("Права успешно переданы пользователю " + toUsername + " на объект " + object.getName());
+                        } else {
+                            System.out.println("Отказ в выполнении операции. У вас нет прав для её осуществления.");
+                        }
+                    } else if (command.equalsIgnoreCase("quit")) {
+                        System.out.println("Работа пользователя " + currentUser.getName() + " завершена.");
+                        break;
+                    } else {
+                        System.out.println("Неизвестная команда. Попробуйте снова.");
+                    }
+                }
+            } else {
+                System.out.println("Пользователь не найден. Попробуйте снова.");
+            }
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        AccessMatrix accessMatrix = new AccessMatrix();
+        Map<String, User> users = new HashMap<>();
+
+        // Добавление пользователей
+        users.put("Администратор", new User("Администратор", true));
+        users.put("Гость", new User("Гость", false));
+        users.put("Пользователь_1", new User("Пользователь_1", false));
+
+        // Добавление объектов доступа
+        AccessObject object1 = new AccessObject("Файл_1");
+        AccessObject object2 = new AccessObject("Файл_2");
+        AccessObject object3 = new AccessObject("CD-RW");
+        AccessObject object4 = new AccessObject("Дисковод");
+
+        // Добавление пользователей и объектов в матрицу доступа
+        for (User user : users.values()) {
+            accessMatrix.addUser(user);
+        }
+        accessMatrix.addObject(object1);
+        accessMatrix.addObject(object2);
+        accessMatrix.addObject(object3);
+        accessMatrix.addObject(object4);
+
+        // Инициализация матрицы доступа
+        accessMatrix.initializeAccessMatrix();
+
+        // Запуск интерфейса пользователя
+        UserInterface ui = new UserInterface(accessMatrix, users);
+        ui.start();
+    }
+}
+
+```
+<details>
